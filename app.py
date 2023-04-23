@@ -13,7 +13,7 @@ MIN_NUM_PEOPLE = 2
 MAX_NUM_PEOPLE = 30
 ks = range(MIN_NUM_PEOPLE, MAX_NUM_PEOPLE + 1)
 NUM_POSSIBLE_BIRTHDAYS = 365
-NUM_TRIALS = 100
+NUM_TRIALS = 1000
 
 app = Dash(__name__)
 
@@ -47,7 +47,10 @@ app.layout = html.Div([
         html.Button('Run Weights', id='run-weights-button', n_clicks=0),
         html.Div(id='container-button'),
         dcc.Graph(id='bday-heatmap'),
-        dcc.Graph(id='graph-weights')
+        dcc.Graph(id='graph-weights'),
+        html.Button('Run', id='run-button-3', n_clicks=0),
+        html.Div(id='container-button-t'),
+        dcc.Graph(id='graph-3'),
         ]
 )
 
@@ -89,7 +92,7 @@ def run(run_button, seed, n_share_bday, num_people):
         bday = Birthday(seed, NUM_TRIALS, MIN_NUM_PEOPLE, num_people, n_share_bday)
         np.random.seed(bday.seed)
         for idx, _ in enumerate(range(bday.num_trials)):
-            bday.estimate_p_coincidence(idx=idx)
+            bday.estimate_p_coincidence()
             bday.trial_list.append(idx)
             p_coincidence = bday.probability[-1]
         fig = px.scatter(x=bday.trial_list, y=bday.probability, 
@@ -126,7 +129,7 @@ def run(run_button, seed, n_share_bday, num_people):
         fig_heatmap = bday.create_heat_map()
         np.random.seed(bday.seed)
         for idx, _ in enumerate(range(bday.num_trials)):
-            bday.estimate_p_coincidence(idx=idx)
+            bday.estimate_p_coincidence()
             bday.trial_list.append(idx)
             p_coincidence = bday.probability[-1]
         fig_weights = px.scatter(x=bday.trial_list, y=bday.probability, 
@@ -139,6 +142,40 @@ def run(run_button, seed, n_share_bday, num_people):
                """
     return html.Div(msg), fig_heatmap, fig_weights
 
+@app.callback(
+    Output('container-button-t', 'children'),
+    Output('graph-3', 'figure'),
+    Input('run-button-3', 'n_clicks'),
+    Input('input_seed', 'value'),
+    Input('num-share-bday', 'value'),
+    Input('num-people', 'value')
+)
+def run(run_button, seed, n_share_bday, num_people):
+    msg = "None of the buttons have been clicked yet"
+    fig = go.Figure()
+    if n_share_bday == None:
+        n_share_bday = 2
+    if "run-button-3" == ctx.triggered_id:
+        trial_list = []
+        bday_prob = []
+        for i in range(num_people):
+            i+=2
+            trial_list.append(i)
+            bday = Birthday(seed, NUM_TRIALS, MIN_NUM_PEOPLE, i, n_share_bday)
+            np.random.seed(bday.seed)
+            for idx, _ in enumerate(range(bday.num_trials)):
+                bday.estimate_p_coincidence()
+                bday.trial_list.append(idx)
+                p_coincidence = bday.probability[-1]
+            bday_prob.append(p_coincidence)
+        fig = px.scatter(x=trial_list, y=bday_prob, 
+                            labels={"x": "Trial Number", "y": "Probability"},
+                            title=f'Probability of Shared Birthday with {NUM_TRIALS} trials')
+            
+        msg = f"""
+                See Graph For Details
+               """
+    return html.Div(msg), fig
 
 if __name__ == "__main__":
     app.run_server(debug=True)

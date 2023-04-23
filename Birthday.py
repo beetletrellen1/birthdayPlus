@@ -32,7 +32,7 @@ class Birthday:
         unique_birthdays = Counter(birthdays)
         return any(same_bday >= x for same_bday in unique_birthdays.values())
 
-    def estimate_p_coincidence(self, idx, people=None):
+    def estimate_p_coincidence(self, people=None):
         if people == None:
             people = self.max_people
 
@@ -104,13 +104,21 @@ class WeightedBirthdays(Birthday):
         return random.choices(range(1, 367), weights=self.birth_weight, k=1)[0]
 
 if __name__ == "__main__":
-    bday = WeightedBirthdays(seed=1, num_trials=100, min_people=10, max_people=40, n_share_bday=3, 
-                    possible_days = 366)
-    bday.create_df()
-    bday.group_bday_by_day()
-    bday.create_bday_weight()
-    for idx, _ in enumerate(range(100)):
-        bday.estimate_p_coincidence(idx=idx)
-        bday.trial_list.append(idx)
-        p_coincidence = bday.probability[-1]
-    print(p_coincidence)
+    # bday = WeightedBirthdays(seed=1, num_trials=100, min_people=10, max_people=40, n_share_bday=3, 
+    #                 possible_days = 366)
+    # bday.create_df()
+    # bday.group_bday_by_day()
+    # bday.create_bday_weight()
+    # for idx, _ in enumerate(range(100)):
+    #     bday.estimate_p_coincidence(idx=idx)
+    #     bday.trial_list.append(idx)
+    #     p_coincidence = bday.probability[-1]
+    # print(p_coincidence)
+    for i in range(40):
+        i+=2
+        bday = Birthday(1, 100, 2, i+2, 2)
+        for idx, _ in enumerate(range(bday.num_trials)):
+            
+            bday.estimate_p_coincidence()
+            p_coincidence = bday.probability[-1]
+        print(i, p_coincidence)
